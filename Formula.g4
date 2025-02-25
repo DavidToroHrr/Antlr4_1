@@ -12,14 +12,17 @@ expression
     | expression ('+' | '-') expression        # AddSub
     | '(' expression ')'                       # Parens
     | NUMBER                                   # Number
-    | ID '(' expression (',' expression)* ')'  # FunctionCall
+    | FUNC '(' expression (',' expression)* ')'  # FunctionCall
     | ID                                       # ColumnReference
     ;
 
-// Funciones estadísticas
+// Definición de funciones explícitas
+FUNC: 'suma' | 'promedio' | 'mediaPonderada' | 'desviacion' | 'mediana' | 'varianza';
+
+// Definición de identificadores (columnas)
 ID: [a-zA-Z_][a-zA-Z0-9_]*;
 
-// Números
+// Definición de números (soporte para decimales)
 NUMBER: [0-9]+ ('.' [0-9]+)?;
 
 // Nueva línea

@@ -108,7 +108,7 @@ class MyVisitor(FormulaVisitor):
 
 
     def visitFunctionCall(self, ctx):
-        func_name = ctx.ID().getText()
+        func_name = ctx.FUNC().getText()  # ✅ Ahora FUNC en lugar de ID
         args = [self.visit(arg) for arg in ctx.expression()]
         print(f"Función: {func_name}, Argumentos: {args}")  # Depuración
 
@@ -148,6 +148,7 @@ class MyVisitor(FormulaVisitor):
             return None
 
         return float(resultado)
+
 
     def visitColumnReference(self, ctx):
         column_name = ctx.ID().getText()

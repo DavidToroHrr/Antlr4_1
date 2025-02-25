@@ -1,1 +1,8 @@
 suma(col1)+suma(col2)
+promedio(col1)
+desviacion(col2)
+suma(col1)
+promedio(col1)
+desviacion(col1)
+mediaPonderada(col1, col2)
+(suma(col1) * promedio(col2)) / desviacion(col1)

@@ -10,19 +10,19 @@ else:
 
 def serializedATN():
     return [
-        4,1,12,53,2,0,7,0,2,1,7,1,2,2,7,2,1,0,4,0,8,8,0,11,0,12,0,9,1,0,
+        4,1,13,53,2,0,7,0,2,1,7,1,2,2,7,2,1,0,4,0,8,8,0,11,0,12,0,9,1,0,
         1,0,1,1,1,1,5,1,16,8,1,10,1,12,1,19,9,1,1,2,1,2,1,2,1,2,1,2,1,2,
         1,2,1,2,1,2,1,2,1,2,5,2,32,8,2,10,2,12,2,35,9,2,1,2,1,2,1,2,3,2,
         40,8,2,1,2,1,2,1,2,1,2,1,2,1,2,5,2,48,8,2,10,2,12,2,51,9,2,1,2,0,
         1,4,3,0,2,4,0,2,1,0,1,3,1,0,4,5,57,0,7,1,0,0,0,2,13,1,0,0,0,4,39,
         1,0,0,0,6,8,3,2,1,0,7,6,1,0,0,0,8,9,1,0,0,0,9,7,1,0,0,0,9,10,1,0,
         0,0,10,11,1,0,0,0,11,12,5,0,0,1,12,1,1,0,0,0,13,17,3,4,2,0,14,16,
-        5,11,0,0,15,14,1,0,0,0,16,19,1,0,0,0,17,15,1,0,0,0,17,18,1,0,0,0,
+        5,12,0,0,15,14,1,0,0,0,16,19,1,0,0,0,17,15,1,0,0,0,17,18,1,0,0,0,
         18,3,1,0,0,0,19,17,1,0,0,0,20,21,6,2,-1,0,21,22,5,6,0,0,22,23,3,
-        4,2,0,23,24,5,7,0,0,24,40,1,0,0,0,25,40,5,10,0,0,26,27,5,9,0,0,27,
+        4,2,0,23,24,5,7,0,0,24,40,1,0,0,0,25,40,5,11,0,0,26,27,5,9,0,0,27,
         28,5,6,0,0,28,33,3,4,2,0,29,30,5,8,0,0,30,32,3,4,2,0,31,29,1,0,0,
         0,32,35,1,0,0,0,33,31,1,0,0,0,33,34,1,0,0,0,34,36,1,0,0,0,35,33,
-        1,0,0,0,36,37,5,7,0,0,37,40,1,0,0,0,38,40,5,9,0,0,39,20,1,0,0,0,
+        1,0,0,0,36,37,5,7,0,0,37,40,1,0,0,0,38,40,5,10,0,0,39,20,1,0,0,0,
         39,25,1,0,0,0,39,26,1,0,0,0,39,38,1,0,0,0,40,49,1,0,0,0,41,42,10,
         6,0,0,42,43,7,0,0,0,43,48,3,4,2,7,44,45,10,5,0,0,45,46,7,1,0,0,46,
         48,3,4,2,6,47,41,1,0,0,0,47,44,1,0,0,0,48,51,1,0,0,0,49,47,1,0,0,
@@ -44,7 +44,7 @@ class FormulaParser ( Parser ):
 
     symbolicNames = [ "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
                       "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
-                      "<INVALID>", "ID", "NUMBER", "NEWLINE", "WS" ]
+                      "<INVALID>", "FUNC", "ID", "NUMBER", "NEWLINE", "WS" ]
 
     RULE_file = 0
     RULE_formula = 1
@@ -61,10 +61,11 @@ class FormulaParser ( Parser ):
     T__5=6
     T__6=7
     T__7=8
-    ID=9
-    NUMBER=10
-    NEWLINE=11
-    WS=12
+    FUNC=9
+    ID=10
+    NUMBER=11
+    NEWLINE=12
+    WS=13
 
     def __init__(self, input:TokenStream, output:TextIO = sys.stdout):
         super().__init__(input, output)
@@ -120,7 +121,7 @@ class FormulaParser ( Parser ):
                 self.state = 9 
                 self._errHandler.sync(self)
                 _la = self._input.LA(1)
-                if not ((((_la) & ~0x3f) == 0 and ((1 << _la) & 1600) != 0)):
+                if not ((((_la) & ~0x3f) == 0 and ((1 << _la) & 3648) != 0)):
                     break
 
             self.state = 11
@@ -175,7 +176,7 @@ class FormulaParser ( Parser ):
             self.state = 17
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            while _la==11:
+            while _la==12:
                 self.state = 14
                 self.match(FormulaParser.NEWLINE)
                 self.state = 19
@@ -286,8 +287,8 @@ class FormulaParser ( Parser ):
             super().__init__(parser)
             self.copyFrom(ctx)
 
-        def ID(self):
-            return self.getToken(FormulaParser.ID, 0)
+        def FUNC(self):
+            return self.getToken(FormulaParser.FUNC, 0)
         def expression(self, i:int=None):
             if i is None:
                 return self.getTypedRuleContexts(FormulaParser.ExpressionContext)
@@ -331,8 +332,8 @@ class FormulaParser ( Parser ):
             self.enterOuterAlt(localctx, 1)
             self.state = 39
             self._errHandler.sync(self)
-            la_ = self._interp.adaptivePredict(self._input,3,self._ctx)
-            if la_ == 1:
+            token = self._input.LA(1)
+            if token in [6]:
                 localctx = FormulaParser.ParensContext(self, localctx)
                 self._ctx = localctx
                 _prevctx = localctx
@@ -344,21 +345,19 @@ class FormulaParser ( Parser ):
                 self.state = 23
                 self.match(FormulaParser.T__6)
                 pass
-
-            elif la_ == 2:
+            elif token in [11]:
                 localctx = FormulaParser.NumberContext(self, localctx)
                 self._ctx = localctx
                 _prevctx = localctx
                 self.state = 25
                 self.match(FormulaParser.NUMBER)
                 pass
-
-            elif la_ == 3:
+            elif token in [9]:
                 localctx = FormulaParser.FunctionCallContext(self, localctx)
                 self._ctx = localctx
                 _prevctx = localctx
                 self.state = 26
-                self.match(FormulaParser.ID)
+                self.match(FormulaParser.FUNC)
                 self.state = 27
                 self.match(FormulaParser.T__5)
                 self.state = 28
@@ -378,15 +377,15 @@ class FormulaParser ( Parser ):
                 self.state = 36
                 self.match(FormulaParser.T__6)
                 pass
-
-            elif la_ == 4:
+            elif token in [10]:
                 localctx = FormulaParser.ColumnReferenceContext(self, localctx)
                 self._ctx = localctx
                 _prevctx = localctx
                 self.state = 38
                 self.match(FormulaParser.ID)
                 pass
-
+            else:
+                raise NoViableAltException(self)
 
             self._ctx.stop = self._input.LT(-1)
             self.state = 49
