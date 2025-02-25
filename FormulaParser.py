@@ -95,13 +95,11 @@ class FormulaParser ( Parser ):
         def getRuleIndex(self):
             return FormulaParser.RULE_file
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterFile" ):
-                listener.enterFile(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitFile" ):
-                listener.exitFile(self)
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitFile" ):
+                return visitor.visitFile(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -156,13 +154,11 @@ class FormulaParser ( Parser ):
         def getRuleIndex(self):
             return FormulaParser.RULE_formula
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterFormula" ):
-                listener.enterFormula(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitFormula" ):
-                listener.exitFormula(self)
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitFormula" ):
+                return visitor.visitFormula(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -224,13 +220,11 @@ class FormulaParser ( Parser ):
                 return self.getTypedRuleContext(FormulaParser.ExpressionContext,i)
 
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterMulDivMod" ):
-                listener.enterMulDivMod(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitMulDivMod" ):
-                listener.exitMulDivMod(self)
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitMulDivMod" ):
+                return visitor.visitMulDivMod(self)
+            else:
+                return visitor.visitChildren(self)
 
 
     class NumberContext(ExpressionContext):
@@ -242,13 +236,11 @@ class FormulaParser ( Parser ):
         def NUMBER(self):
             return self.getToken(FormulaParser.NUMBER, 0)
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterNumber" ):
-                listener.enterNumber(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitNumber" ):
-                listener.exitNumber(self)
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitNumber" ):
+                return visitor.visitNumber(self)
+            else:
+                return visitor.visitChildren(self)
 
 
     class AddSubContext(ExpressionContext):
@@ -264,13 +256,11 @@ class FormulaParser ( Parser ):
                 return self.getTypedRuleContext(FormulaParser.ExpressionContext,i)
 
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterAddSub" ):
-                listener.enterAddSub(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitAddSub" ):
-                listener.exitAddSub(self)
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitAddSub" ):
+                return visitor.visitAddSub(self)
+            else:
+                return visitor.visitChildren(self)
 
 
     class ParensContext(ExpressionContext):
@@ -283,13 +273,11 @@ class FormulaParser ( Parser ):
             return self.getTypedRuleContext(FormulaParser.ExpressionContext,0)
 
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterParens" ):
-                listener.enterParens(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitParens" ):
-                listener.exitParens(self)
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitParens" ):
+                return visitor.visitParens(self)
+            else:
+                return visitor.visitChildren(self)
 
 
     class FunctionCallContext(ExpressionContext):
@@ -307,13 +295,11 @@ class FormulaParser ( Parser ):
                 return self.getTypedRuleContext(FormulaParser.ExpressionContext,i)
 
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterFunctionCall" ):
-                listener.enterFunctionCall(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitFunctionCall" ):
-                listener.exitFunctionCall(self)
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitFunctionCall" ):
+                return visitor.visitFunctionCall(self)
+            else:
+                return visitor.visitChildren(self)
 
 
     class ColumnReferenceContext(ExpressionContext):
@@ -325,13 +311,11 @@ class FormulaParser ( Parser ):
         def ID(self):
             return self.getToken(FormulaParser.ID, 0)
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterColumnReference" ):
-                listener.enterColumnReference(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitColumnReference" ):
-                listener.exitColumnReference(self)
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitColumnReference" ):
+                return visitor.visitColumnReference(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 

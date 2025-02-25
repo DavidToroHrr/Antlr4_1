@@ -12,14 +12,32 @@ class MyVisitor(FormulaVisitor):
         self.results = {}  # Almacenar resultados de múltiples fórmulas
 
     def visitFile(self, ctx):
+        print("🔄 Procesando archivo con múltiples fórmulas...")  # 🚀 Depuración
+
+        if not ctx.formula():
+            print("❌ No se encontraron fórmulas en el árbol sintáctico.")
+            return {}
+
         for formula in ctx.formula():
-            result = self.visit(formula)
+            formula_text = formula.getText()
+            print(f"📌 Procesando fórmula: {formula_text}")  # 🚀 Depuración
+
+            result = self.visit(formula)  # 👈 Aquí llamamos a `visitFormula`
             if result is not None:
-                self.results[formula.getText()] = result  # Guardamos el resultado
+                self.results[formula_text] = result
+                print(f"✅ Resultado para {formula_text}: {result}")  # 🚀 Ver resultado
+            else:
+                print(f"⚠️ La fórmula {formula_text} devolvió None.")  # 🚀 Más depuración
+
+        print(f"✅ Resultados finales en visitFile: {self.results}")
         return self.results
 
     def visitFormula(self, ctx):
-        return self.visit(ctx.expression())
+        print(f"🔍 Evaluando expresión en visitFormula: {ctx.getText()}")
+        result = self.visit(ctx.expression())  # 👈 Evaluamos solo la expresión
+        print(f"🔹 Resultado de la fórmula: {result}")  # 🚀 Depuración
+        return result
+
 
     def visitNumber(self, ctx):
         return float(ctx.NUMBER().getText())
@@ -90,18 +108,34 @@ def process_formulas_with_antlr(file_path, visitor):
     Usa ANTLR para leer y procesar las fórmulas desde un archivo.
     """
     try:
+        print(f"📂 Leyendo archivo: {file_path}")  # 🚀 Depuración
+
         with open(file_path, 'r') as file:
-            input_stream = InputStream(file.read())
+            content = file.read()
+            print(f"📄 Contenido del archivo:\n{content}")  # 🚀 Verificar si el archivo tiene datos
+
+            input_stream = InputStream(content)
 
         lexer = FormulaLexer(input_stream)
         stream = CommonTokenStream(lexer)
         parser = FormulaParser(stream)
-        tree = parser.file()  # Procesamos múltiples fórmulas
-        return visitor.visit(tree)
+
+        print("⚡ Ejecutando parser...")  # 🚀 Depuración antes de procesar
+        tree = parser.file_()  # 🔹 Ahora usamos `file_()` en lugar de `file()`
+
+        print(f"🌳 Árbol sintáctico:\n{tree.toStringTree(recog=parser)}")  # 🔥 Depuración clave
+
+        print("🌳 Árbol sintáctico construido, iniciando visitor...")  # 🚀 Depuración
+        results = visitor.visit(tree)
+
+        print(f"✅ Resultados obtenidos: {results}")  # 🚀 Mostrar resultados
+        return results
 
     except Exception as e:
-        print(f"Error al procesar las fórmulas: {e}")
+        print(f"❌ Error al procesar las fórmulas: {e}")
         return {}
+
+
 
 def plot_results(results):
     """
