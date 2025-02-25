@@ -1,0 +1,5 @@
+Fórmula,Resultado
+suma(col1),4.0
+promedio(col1),2.0
+desviacion(col1),1.4142135623730951
+"mediaPonderada(col1, col2)",1.7272727272727273

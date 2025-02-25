@@ -1,0 +1,4 @@
+suma(col1)
+promedio(col1)
+desviacion(col1)
+mediaPonderada(col1, col2)

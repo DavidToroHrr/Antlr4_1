@@ -4,11 +4,22 @@ from FormulaLexer import FormulaLexer
 from FormulaParser import FormulaParser
 from FormulaVisitor import FormulaVisitor
 import pandas as pd
-import math
+import matplotlib.pyplot as plt
 
 class MyVisitor(FormulaVisitor):
     def __init__(self, data):
         self.data = data  # DataFrame con los datos cargados
+        self.results = {}  # Almacenar resultados de múltiples fórmulas
+
+    def visitFile(self, ctx):
+        for formula in ctx.formula():
+            result = self.visit(formula)
+            if result is not None:
+                self.results[formula.getText()] = result  # Guardamos el resultado
+        return self.results
+
+    def visitFormula(self, ctx):
+        return self.visit(ctx.expression())
 
     def visitNumber(self, ctx):
         return float(ctx.NUMBER().getText())
@@ -34,71 +45,111 @@ class MyVisitor(FormulaVisitor):
     def visitFunctionCall(self, ctx):
         func_name = ctx.ID().getText()
         args = [self.visit(arg) for arg in ctx.expression()]
+        print(f"Función: {func_name}, Argumentos: {args}")  # Depuración
+
+        # Convertir nombres de columna en sus valores
+        for i in range(len(args)):
+            if isinstance(args[i], str) and args[i] in self.data.columns:
+                args[i] = self.data[args[i]]
+
+        if not args or any(arg is None for arg in args):
+            raise ValueError(f"Los argumentos para la función '{func_name}' no son válidos: {args}")
+
+        resultado = None
+
         if func_name == 'suma':
-            return self.data[args[0]].sum()
+            resultado = args[0].sum()
         elif func_name == 'promedio':
-            return self.data[args[0]].mean()
+            resultado = args[0].mean()
         elif func_name == 'mediaPonderada':
-            return (self.data[args[0]] * self.data[args[1]]).sum() / self.data[args[1]].sum()
+            resultado = (args[0] * args[1]).sum() / args[1].sum()
         elif func_name == 'desviacion':
-            return self.data[args[0]].std()
+            resultado = args[0].std()
         else:
             raise ValueError(f"Función no soportada: {func_name}")
 
-def load_csv(file_path):
-    """
-    Carga un archivo CSV y devuelve un DataFrame de pandas.
-    """
-    try:
-        return pd.read_csv(file_path)
-    except Exception as e:
-        print(f"Error al cargar el archivo CSV: {e}")
-        return None
+        print(f"Resultado de la función '{func_name}': {resultado}")
+        return float(resultado) if resultado is not None else None
 
-def load_excel(file_path, sheet_name=0):
-    """
-    Carga un archivo Excel y devuelve un DataFrame de pandas.
-    """
+    def visitColumnReference(self, ctx):
+        column_name = ctx.ID().getText()
+        if column_name in self.data.columns:
+            return self.data[column_name]
+        else:
+            raise ValueError(f"La columna '{column_name}' no existe en los datos")
+
+def load_excel(file_path):
     try:
-        return pd.read_excel(file_path, sheet_name=sheet_name,engine='openpyxl')
+        return pd.read_excel(file_path, engine='openpyxl')
     except Exception as e:
         print(f"Error al cargar el archivo Excel: {e}")
         return None
 
-def preview_data(df, num_rows=5):
+def process_formulas_with_antlr(file_path, visitor):
     """
-    Muestra una vista previa de los datos (primeras filas).
+    Usa ANTLR para leer y procesar las fórmulas desde un archivo.
     """
-    if df is not None:
-        print(df.head(num_rows))
-    else:
-        print("No hay datos para mostrar.")
+    try:
+        with open(file_path, 'r') as file:
+            input_stream = InputStream(file.read())
 
-def export_results(result, output_format):
+        lexer = FormulaLexer(input_stream)
+        stream = CommonTokenStream(lexer)
+        parser = FormulaParser(stream)
+        tree = parser.file()  # Procesamos múltiples fórmulas
+        return visitor.visit(tree)
+
+    except Exception as e:
+        print(f"Error al procesar las fórmulas: {e}")
+        return {}
+
+def plot_results(results):
     """
-    Exporta los resultados a un archivo CSV o Excel.
+    Muestra los resultados en un gráfico de barras.
     """
+    if not results:
+        print("No hay resultados para graficar.")
+        return
+
+    formulas = list(results.keys())
+    values = list(results.values())
+
+    plt.figure(figsize=(8, 5))
+    plt.barh(formulas, values, color='skyblue')
+    plt.xlabel("Valor Calculado")
+    plt.ylabel("Fórmulas")
+    plt.title("Resultados de las Fórmulas")
+    plt.grid(axis='x', linestyle='--', alpha=0.7)
+
+    for index, value in enumerate(values):
+        plt.text(value, index, f"{value:.2f}", va='center')
+
+    plt.show()
+
+def export_results(results, output_format):
+    df = pd.DataFrame(list(results.items()), columns=['Fórmula', 'Resultado'])
+
     if output_format == 'csv':
-        result.to_csv('resultados.csv', index=False)
+        df.to_csv('resultados.csv', index=False)
         print("Resultados exportados a 'resultados.csv'.")
     elif output_format == 'excel':
-        result.to_excel('resultados.xlsx', index=False)
+        df.to_excel('resultados.xlsx', index=False)
         print("Resultados exportados a 'resultados.xlsx'.")
     else:
         print("Formato de exportación no soportado.")
 
 def main():
-    # Carga de archivos (Fase 2)
-    file_path = input("Ingrese la ruta del archivo (CSV o Excel): ")
-    if file_path.endswith('.csv'):
-        df = load_csv(file_path)
-    elif file_path.endswith('.xlsx'):
-        df = load_excel(file_path)
-    else:
+    file_path = input("Ingrese la ruta del archivo Excel: ")
+    if not file_path.endswith('.xlsx'):
         print("Formato de archivo no soportado.")
         return
 
-    preview_data(df)
+    df = load_excel(file_path)
+    if df is None:
+        return
+
+    print("Vista previa de los datos:")
+    print(df.head())
 
     columns = input("Ingrese las columnas a utilizar (separadas por comas): ").split(',')
     invalid_columns = [col for col in columns if col not in df.columns]
@@ -107,23 +158,20 @@ def main():
         return
     selected_data = df[columns]
 
-    # Solicita una fórmula al usuario
-    formula = input("Ingrese una fórmula: ")
-    input_stream = InputStream(formula)
-    lexer = FormulaLexer(input_stream)
-    stream = CommonTokenStream(lexer)
-    parser = FormulaParser(stream)
-    tree = parser.formula()
-
-    # Evalúa la fórmula usando el Visitor
+    formulas_file = input("Ingrese la ruta del archivo de fórmulas (txt): ")
     visitor = MyVisitor(selected_data)
-    result = visitor.visit(tree)
-    print(f"Resultado: {result}")
+    results = process_formulas_with_antlr(formulas_file, visitor)
 
-    # Exportar resultados (Fase 4)
-    output_format = input("¿Desea exportar los resultados? (csv/excel/none): ").lower()
-    if output_format in ['csv', 'excel']:
-        export_results(pd.DataFrame({'Resultado': [result]}), output_format)
+    if results:
+        print("\nResultados obtenidos:")
+        for formula, result in results.items():
+            print(f"{formula} = {result}")
+
+        plot_results(results)
+
+        output_format = input("\n¿Desea exportar los resultados? (csv/excel/none): ").lower()
+        if output_format in ['csv', 'excel']:
+            export_results(results, output_format)
 
 if __name__ == '__main__':
     main()

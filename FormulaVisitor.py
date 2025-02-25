@@ -9,6 +9,11 @@ else:
 
 class FormulaVisitor(ParseTreeVisitor):
 
+    # Visit a parse tree produced by FormulaParser#file.
+    def visitFile(self, ctx:FormulaParser.FileContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by FormulaParser#formula.
     def visitFormula(self, ctx:FormulaParser.FormulaContext):
         return self.visitChildren(ctx)
@@ -36,6 +41,11 @@ class FormulaVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by FormulaParser#FunctionCall.
     def visitFunctionCall(self, ctx:FormulaParser.FunctionCallContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by FormulaParser#ColumnReference.
+    def visitColumnReference(self, ctx:FormulaParser.ColumnReferenceContext):
         return self.visitChildren(ctx)
 
 
