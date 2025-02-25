@@ -34,10 +34,15 @@ class MyVisitor(FormulaVisitor):
 
     def visitFormula(self, ctx):
         print(f"🔍 Evaluando expresión en visitFormula: {ctx.getText()}")
-        result = self.visit(ctx.expression())  # 👈 Evaluamos solo la expresión
-        print(f"🔹 Resultado de la fórmula: {result}")  # 🚀 Depuración
-        return result
+        result = self.visit(ctx.expression())  # Evaluamos la expresión principal
 
+        # 🔥 Nueva validación para evitar propagación de None
+        if result is None:
+            print(f"❌ Error: La expresión '{ctx.getText()}' devolvió None.")
+            return None
+
+        print(f"🔹 Resultado de la fórmula: {result}")  # 🚀 Depuración
+        return float(result)  # Asegurar que devuelve un número
 
     def visitNumber(self, ctx):
         return float(ctx.NUMBER().getText())
@@ -45,33 +50,77 @@ class MyVisitor(FormulaVisitor):
     def visitMulDivMod(self, ctx):
         left = self.visit(ctx.expression(0))
         right = self.visit(ctx.expression(1))
-        if ctx.op.type == FormulaParser.MUL:
-            return left * right
-        elif ctx.op.type == FormulaParser.DIV:
-            return left / right
-        elif ctx.op.type == FormulaParser.MOD:
-            return left % right
+        operator = ctx.getChild(1).getText()
+
+        print(f"🛠️ Evaluando: {left} {operator} {right}")  # Depuración
+
+        if left is None:
+            print(f"❌ Error: La parte izquierda de la operación es None ({operator} {right})")
+            return None
+        if right is None:
+            print(f"❌ Error: La parte derecha de la operación es None ({left} {operator})")
+            return None
+
+        try:
+            resultado = None
+            if operator == '*':
+                resultado = left * right
+            elif operator == '/':
+                if right == 0:
+                    print("❌ Error: División por cero.")
+                    return None
+                resultado = left / right
+            elif operator == '%':
+                resultado = left % right
+            else:
+                print(f"❌ Operador desconocido: {operator}")
+                return None
+
+            print(f"✅ Resultado de {left} {operator} {right} = {resultado}")  # Confirmar resultado
+            return float(resultado)  # Asegurar retorno válido
+
+        except Exception as e:
+            print(f"❌ Error durante la operación {left} {operator} {right}: {e}")
+            return None
 
     def visitAddSub(self, ctx):
-        left = self.visit(ctx.expression(0))
-        right = self.visit(ctx.expression(1))
-        if ctx.op.type == FormulaParser.ADD:
+        left = self.visit(ctx.expression(0))  # Evalúa la primera expresión
+        right = self.visit(ctx.expression(1))  # Evalúa la segunda expresión
+
+        operator = ctx.getChild(1).getText()  # Obtener el operador
+
+        print(f"🛠️ Evaluando: {left} {operator} {right}")  # 🔍 Depuración
+
+        if left is None:
+            print(f"❌ Error: La parte izquierda de la operación es None ({operator} {right})")
+            return None
+        if right is None:
+            print(f"❌ Error: La parte derecha de la operación es None ({left} {operator})")
+            return None
+
+        if operator == '+':
             return left + right
-        else:
+        elif operator == '-':
             return left - right
+        else:
+            print(f"❌ Operador desconocido: {operator}")
+            return None
+
 
     def visitFunctionCall(self, ctx):
         func_name = ctx.ID().getText()
         args = [self.visit(arg) for arg in ctx.expression()]
         print(f"Función: {func_name}, Argumentos: {args}")  # Depuración
 
+        # Verificar si algún argumento es None
+        if any(arg is None for arg in args):
+            print(f"❌ Error: Argumentos inválidos para {func_name}: {args}")
+            return None
+
         # Convertir nombres de columna en sus valores
         for i in range(len(args)):
             if isinstance(args[i], str) and args[i] in self.data.columns:
                 args[i] = self.data[args[i]]
-
-        if not args or any(arg is None for arg in args):
-            raise ValueError(f"Los argumentos para la función '{func_name}' no son válidos: {args}")
 
         resultado = None
 
@@ -83,11 +132,22 @@ class MyVisitor(FormulaVisitor):
             resultado = (args[0] * args[1]).sum() / args[1].sum()
         elif func_name == 'desviacion':
             resultado = args[0].std()
+        elif func_name == 'mediana':
+            resultado = args[0].median()
+        elif func_name == 'varianza':
+            resultado = args[0].var()
         else:
-            raise ValueError(f"Función no soportada: {func_name}")
+            print(f"❌ Función no soportada: {func_name}")
+            return None
 
-        print(f"Resultado de la función '{func_name}': {resultado}")
-        return float(resultado) if resultado is not None else None
+        print(f"✅ Resultado de {func_name}: {resultado}")
+
+        # Verificar si el resultado es None antes de devolverlo
+        if resultado is None:
+            print(f"❌ Error: La función {func_name} devolvió None.")
+            return None
+
+        return float(resultado)
 
     def visitColumnReference(self, ctx):
         column_name = ctx.ID().getText()
@@ -123,7 +183,9 @@ def process_formulas_with_antlr(file_path, visitor):
         print("⚡ Ejecutando parser...")  # 🚀 Depuración antes de procesar
         tree = parser.file_()  # 🔹 Ahora usamos `file_()` en lugar de `file()`
 
-        print(f"🌳 Árbol sintáctico:\n{tree.toStringTree(recog=parser)}")  # 🔥 Depuración clave
+        # 🌳 Imprimir el árbol sintáctico
+        print("\n🌳 Árbol sintáctico generado:")
+        print(tree.toStringTree(recog=parser))  # 🔥 Imprime el árbol en formato string
 
         print("🌳 Árbol sintáctico construido, iniciando visitor...")  # 🚀 Depuración
         results = visitor.visit(tree)
